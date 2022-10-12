@@ -1,9 +1,9 @@
 const express=require("express");
 const app=express();
-
-app.use(express.json());
-
-const fs = require('fs')
+const { isPromise } = require("util/types");
+const fs = require('fs');
+const { ServerResponse } = require("http");
+var arr = [] // store multiple data form different IPs
 
 // Read and parse local josn file every time a new IP clicked in
 function readLocalFile(filePath,cb){
@@ -19,45 +19,64 @@ function readLocalFile(filePath,cb){
         }
     });
 }
-//Write newdata to json file
-const data = {
-    name: '000',     //take in the current IP
-    counter:1,       // incremented counter from this IP
-    face_points:[0], //arry of the collected points
-};
 
-readLocalFile('./01.json',(err,data)=>{
-    if(err){
-        console.log(err);
-    } else {
-      data.counter += 1;
-      fs.writeFile('./01.json',JSON.stringify(data,null,2),err => {
-            if(err){
-                console.log(err);
-            }else{
-                console.log('File successfully written!');
-            }
-        });
-    }
-});
+
 //———————————————————————————————————————————————————————————
 app.use(express.json());
-
-app.get("./package.json",(req,res)=>{
-    //change to post the json file we read from localfile
+// sent data to front
+app.get("./01.json",(req,res)=>{
+    readLocalFile('./01.json',(err,data)=>{
+        if(err) {
+         res.status(404).send('Not found');
+        } else {
+          res.contentType(req.params.file);
+          res.send(data);
+        }   
+        res.end();
+      }); 
     res.status(200).json({
         message:"get message",
     });
 });
 
-
-app.post("/newface",(req,res)=>{
-
-    
+//Write newdata to json file
+app.post('./01.json',(req,res)=>{
+    readLocalFile('./01.json',(err,data)=>{
+        if(err){
+            console.log(err);
+        } else if (!arr.includes('req')){
+            req.counter +=1
+            arr.push(req)
+            arr.toString()
+            fs.writeFile('./01.json',JSON.stringify(arr,null,2),err => {
+                if(err){
+                    console.log(err);
+                }else{
+                    console.log('File successfully written!');
+                }
+            });
+        } else {
+            req.counter +=1
+            for(var key in arr.data){
+                if(req.name === arr.data[key].name) {
+                    arr.data[key]=req;
+                }
+              }
+            arr.toString()
+            fs.writeFile('./01.json',JSON.stringify(arr,null,2),err => {
+                if(err){
+                    console.log(err);
+                }else{
+                    console.log('File successfully written!');
+                }
+            });
+        }
+    });
     console.log(req.body);
     res.status(200).json({
         message:"post message",
     });
 });
 
-app.listen(4000,()=>console.log("server listening on port 4000"));
+var port = process.env.PORT || 4000;
+app.listen(port,()=>console.log("server listening on port" + port));
