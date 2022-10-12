@@ -3,7 +3,9 @@ const app=express();
 const { isPromise } = require("util/types");
 const fs = require('fs');
 const { ServerResponse } = require("http");
-var arr = [] // store multiple data form different IPs
+var arr = []; // store multiple data form different IPs
+const Ip_number = 0;
+
 
 // Read and parse local josn file every time a new IP clicked in
 function readLocalFile(filePath,cb){
@@ -45,9 +47,10 @@ app.post('./01.json',(req,res)=>{
         if(err){
             console.log(err);
         } else if (!arr.includes('req')){
-            req.counter +=1
-            arr.push(req)
-            arr.toString()
+            Ip_number += 1;
+            req.counter = Ip_number;
+            arr.push(req);
+            arr.toString();
             fs.writeFile('./01.json',JSON.stringify(arr,null,2),err => {
                 if(err){
                     console.log(err);
@@ -56,13 +59,13 @@ app.post('./01.json',(req,res)=>{
                 }
             });
         } else {
-            req.counter +=1
             for(var key in arr.data){
                 if(req.name === arr.data[key].name) {
+                    req.counter = arr.data[key].counter +=1;
                     arr.data[key]=req;
                 }
               }
-            arr.toString()
+            arr.toString();
             fs.writeFile('./01.json',JSON.stringify(arr,null,2),err => {
                 if(err){
                     console.log(err);
